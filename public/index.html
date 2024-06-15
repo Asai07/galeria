@@ -6,14 +6,21 @@
     <title>Responsive Image Gallery</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-100 relative">
     <header class="header-bg-blue text-white p-4 flex justify-between items-center relative shadow-md">
         <div class="text-2xl font-bold">Eventoclic</div>
         <div class="hidden md:flex items-center space-x-4">
             <a href="#" class="menu-button">Inicio</a>
+            <a href="#favorites" class="menu-button">Favoritas</a>
             <button class="menu-button upload">Subir imagen</button>
             <button class="menu-button download">Descargar galería</button>
+            <select class="menu-button sort">
+                <option value="size">Ordenar por tamaño</option>
+                <option value="date">Ordenar por fecha</option>
+            </select>
+            <a href="#" class="menu-button">Cerrar sesión</a>
         </div>
         <div class="md:hidden flex items-center">
             <div class="hamburger" id="hamburger">
@@ -23,15 +30,34 @@
             </div>
         </div>
     </header>
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-menu bg-blue-900 text-white" id="mobile-menu">
+        <div class="mobile-menu-header flex justify-between items-center p-4 bg-blue-700 shadow-md">
+            <div class="text-2xl font-bold">Menú</div>
+            <div class="text-2xl cursor-pointer" id="close-menu">✕</div>
+        </div>
+        <a href="#" class="block p-4 hover:bg-blue-800">Inicio</a>
+        <a href="#" id="toggle-favorites" class="block p-4 hover:bg-blue-800">Favoritas</a>
+        <a href="#" class="block p-4 hover:bg-blue-800 upload">Subir imagen</a>
+        <a href="#" class="block p-4 hover:bg-blue-800 download">Descargar galería</a>
+        <div class="p-4">
+            <select class="w-full bg-blue-800 text-white py-2 px-4 rounded shadow-md sort">
+                <option value="size">Ordenar por tamaño</option>
+                <option value="date">Ordenar por fecha</option>
+            </select>
+        </div>
+        <a href="#" class="block p-4 hover:bg-blue-800">Cerrar sesión</a>
+    </div>
     <main class="p-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="gallery"></div>
+        <div id="favorites" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
     </main>
     <div class="fixed bottom-5 right-5">
         <button class="bg-blue-700 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded-full shadow-lg upload">
             <i class="fas fa-upload"></i>
         </button>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </body>
 </html>
