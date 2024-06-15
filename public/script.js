@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to fetch images from the local server
     const fetchImages = async () => {
+        console.log('Fetching images...');
         try {
             const response = await axios.get('/images');
             const imageFiles = response.data;
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to display images in the gallery
     const displayImages = (images) => {
+        console.log('Displaying images...');
         gallery.innerHTML = '';
         images.forEach(({ webp, original }) => {
             if (!original) {
