@@ -68,30 +68,25 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', triggerUpload);
     });
 
-    uploadInput.addEventListener('change', (event) => {
+    uploadInput.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (file) {
             console.log('File selected for upload:', file.name);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                const galleryItem = document.createElement('div');
-                galleryItem.className = 'gallery-item relative rounded-lg shadow-lg overflow-hidden';
-                galleryItem.innerHTML = `
-                    <img src="${img.src}" alt="${file.name}" class="w-full h-full object-cover" loading="lazy">
-                    <div class="menu flex items-center justify-between w-full">
-                        <div class="flex space-x-3">
-                            <i class="fas fa-heart cursor-pointer"></i>
-                            <i class="fas fa-plus cursor-pointer hover:text-blue-500"></i>
-                        </div>
-                        <button class="bg-gray-700 hover:bg-gray-800 text-white py-1 px-3 rounded download-btn" data-original-image="${file.name}">Download</button>
-                    </div>
-                `;
-                gallery.appendChild(galleryItem);
-                console.log('Image uploaded and added to gallery:', file.name);
-            };
-            reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await axios.post('/upload', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                console.log('Image uploaded successfully:', response);
+                // Fetch and display images again
+                fetchImages();
+            } catch (error) {
+                console.error('Error uploading image:', error);
+            }
         }
     });
 
