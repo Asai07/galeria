@@ -1,8 +1,19 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
+const mongoose = require('mongoose');
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Conectar a la base de datos MongoDB
+mongoose.connect('mongodb://localhost:27017/gallery', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Definir el esquema y modelo de imagen
+const imageSchema = new mongoose.Schema({
+  webp: String,
+  original: String
+});
+
+const Image = mongoose.model('Image', imageSchema);
 
 // Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
@@ -18,46 +29,33 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ruta para obtener imágenes
-app.get('/images', (req, res) => {
+// Ruta para obtener la lista de imágenes
+app.get('/images', async (req, res) => {
   console.log('GET /images called');
-  const galleryPath = path.join(__dirname, 'public', 'galeria-webp');
-  const images = [];
-
-  fs.readdir(galleryPath, (err, files) => {
-    if (err) {
-      console.error('Error reading images directory:', err);
-      return res.status(500).send('Error reading images directory');
-    }
-    if (!files.length) {
-      console.warn('No images found in the directory');
-      return res.status(404).send('No images found');
-    }
-    files.forEach(file => {
-      console.log(`Found image file: ${file}`);
-      images.push({
-        webp: file,
-        original: file.replace('.webp', '') // Asumiendo que los nombres de los archivos originales son similares a los webp
-      });
-    });
+  try {
+    const images = await Image.find();
     console.log('Sending image data:', images);
     res.json(images);
-  });
+  } catch (err) {
+    console.error('Error fetching images from database:', err);
+    res.status(500).send('Error fetching images from database');
+  }
 });
 
-// Ruta para descargar imágenes individuales
-app.get('/download/:imageName', (req, res) => {
-  const imageName = req.params.imageName;
-  const imagePath = path.join(__dirname, 'public', 'galeria', imageName);
-
-  console.log(`Download requested for image: ${imageName}`);
-
-  res.download(imagePath, err => {
-    if (err) {
-      console.error('Error downloading image:', err);
-      res.status(500).send('Error downloading image');
-    }
+// Ruta para agregar imágenes (para propósitos de prueba)
+app.post('/images', async (req, res) => {
+  const newImage = new Image({
+    webp: 'example.webp',
+    original: 'example'
   });
+
+  try {
+    const savedImage = await newImage.save();
+    res.json(savedImage);
+  } catch (err) {
+    console.error('Error saving image to database:', err);
+    res.status(500).send('Error saving image to database');
+  }
 });
 
 app.listen(port, () => {
