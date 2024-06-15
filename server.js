@@ -5,7 +5,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Servir archivos estáticos desde la carpeta 'public'
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Ruta para el archivo HTML principal
 app.get('/', (req, res) => {
