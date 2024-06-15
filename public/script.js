@@ -12,11 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Fetching images...');
         try {
             const response = await axios.get('/images');
+            console.log('Response status:', response.status);
             const imageFiles = response.data;
             console.log('Fetched images:', imageFiles); // Log fetched images
             displayImages(imageFiles);
         } catch (error) {
             console.error('Error fetching images:', error);
+            console.log('Error response:', error.response ? error.response.data : 'No response data');
         }
     };
 
@@ -42,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             gallery.appendChild(galleryItem);
+            console.log('Added image to gallery:', webp);
         });
     };
 
@@ -56,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to trigger the upload input click
     const triggerUpload = () => {
+        console.log('Triggering upload input click');
         uploadInput.click();
     };
 
@@ -67,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file) {
+            console.log('File selected for upload:', file.name);
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
@@ -84,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
                 gallery.appendChild(galleryItem);
-                console.log('Image uploaded:', file.name); // Log uploaded image
+                console.log('Image uploaded and added to gallery:', file.name);
             };
             reader.readAsDataURL(file);
         }
@@ -92,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Download Gallery functionality
     downloadGalleryBtn.addEventListener('click', async () => {
+        console.log('Downloading entire gallery...');
         const zip = new JSZip();
         const images = document.querySelectorAll('.gallery-item img');
         const fetchPromises = [];
@@ -105,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(res => res.blob())
                     .then(blob => {
                         zip.file(filename, blob);
+                        console.log(`Added ${filename} to zip`);
                     })
             );
         });
@@ -115,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.href = URL.createObjectURL(content);
                 link.download = 'gallery.zip';
                 link.click();
-                console.log('Gallery downloaded'); // Log gallery download
+                console.log('Gallery downloaded');
             });
         });
     });
@@ -123,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sort Gallery functionality
     sortSelect.addEventListener('change', (event) => {
         const sortBy = event.target.value;
+        console.log('Sorting gallery by:', sortBy);
         const itemsArray = Array.from(gallery.children);
         itemsArray.sort((a, b) => {
             const imgA = a.querySelector('img');
@@ -134,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         itemsArray.forEach(item => gallery.appendChild(item));
-        console.log('Gallery sorted by', sortBy); // Log sorting
+        console.log('Gallery sorted by', sortBy);
     });
 
     // Favorites functionality
@@ -147,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 favorites.add(imgSrc);
                 favoriteSection.appendChild(galleryItem.cloneNode(true));
                 favoriteSection.classList.remove('hidden');
+                console.log('Added to favorites:', imgSrc);
             } else {
                 favorites.delete(imgSrc);
                 const favoritesItems = favoriteSection.querySelectorAll('.gallery-item');
@@ -158,8 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (favorites.size === 0) {
                     favoriteSection.classList.add('hidden');
                 }
+                console.log('Removed from favorites:', imgSrc);
             }
-            console.log('Favorites updated:', Array.from(favorites)); // Log favorites update
+            console.log('Favorites updated:', Array.from(favorites));
         }
     });
 
@@ -168,11 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target.classList.contains('download-btn')) {
             const originalImageName = event.target.getAttribute('data-original-image');
             if (originalImageName) {
+                console.log('Downloading image:', originalImageName);
                 const link = document.createElement('a');
                 link.href = `/download/${originalImageName}`;
                 link.download = originalImageName;
                 link.click();
-                console.log('Downloading image:', originalImageName); // Log image download
             } else {
                 console.error('Original image name is undefined for:', event.target);
             }
@@ -191,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     hamburger.addEventListener('click', () => {
+        console.log('Hamburger menu clicked');
         hamburger.classList.toggle('active');
         mobileMenu.classList.toggle('open');
         overlay.classList.toggle('active');
