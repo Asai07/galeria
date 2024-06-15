@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gallery = document.getElementById('gallery');
-    const uploadBtns = document.querySelectorAll('.menu-button.upload, .upload');
+    const uploadBtns = document.querySelectorAll('.menu-button.upload, .upload'); // Incluye el botón flotante
     const downloadGalleryBtn = document.querySelector('.menu-button.download');
     const sortSelect = document.querySelector('.menu-button.sort');
     const favoriteSection = document.getElementById('favorites');
@@ -9,32 +9,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to fetch images from the local server
     const fetchImages = async () => {
+        console.log('Fetching images...');
         try {
             const response = await axios.get('/images');
+            console.log('Response status:', response.status);
             const imageFiles = response.data;
+            console.log('Fetched images:', imageFiles); // Log fetched images
             displayImages(imageFiles);
         } catch (error) {
             console.error('Error fetching images:', error);
+            console.log('Error response:', error.response ? error.response.data : 'No response data');
         }
     };
 
     // Function to display images in the gallery
     const displayImages = (images) => {
+        console.log('Displaying images...');
         gallery.innerHTML = '';
         images.forEach(({ webp, original }) => {
+            if (!original) {
+                console.error('No original file found for:', webp);
+                return;
+            }
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item relative rounded-lg shadow-lg overflow-hidden';
             galleryItem.innerHTML = `
-                <img src="galeria/${webp}" alt="${webp}" class="w-full h-full object-cover" loading="lazy">
+                <img src="galeria-webp/${webp}" alt="${webp}" class="w-full h-full object-cover" loading="lazy">
                 <div class="menu flex items-center justify-between w-full">
                     <div class="flex space-x-3">
-                        <i class="fas fa-heart cursor-pointer ${favorites.has(`galeria/${webp}`) ? 'text-red-500' : ''}"></i>
+                        <i class="fas fa-heart cursor-pointer ${favorites.has(`galeria-webp/${webp}`) ? 'text-red-500' : ''}"></i>
                         <i class="fas fa-plus cursor-pointer hover:text-blue-500"></i>
                     </div>
                     <button class="bg-gray-700 hover:bg-gray-800 text-white py-1 px-3 rounded download-btn" data-original-image="${original}">Download</button>
                 </div>
             `;
             gallery.appendChild(galleryItem);
+            console.log('Added image to gallery:', webp);
         });
     };
 
@@ -47,10 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadInput.style.display = 'none';
     document.body.appendChild(uploadInput);
 
+    // Function to trigger the upload input click
     const triggerUpload = () => {
+        console.log('Triggering upload input click');
         uploadInput.click();
     };
 
+    // Event listeners for upload buttons
     uploadBtns.forEach(btn => {
         btn.addEventListener('click', triggerUpload);
     });
@@ -58,15 +71,18 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadInput.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (file) {
+            console.log('File selected for upload:', file.name);
             const formData = new FormData();
             formData.append('image', file);
 
             try {
-                await axios.post('/upload', formData, {
+                const response = await axios.post('/upload', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
+                console.log('Image uploaded successfully:', response);
+                // Fetch and display images again
                 fetchImages();
             } catch (error) {
                 console.error('Error uploading image:', error);
@@ -76,18 +92,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Download Gallery functionality
     downloadGalleryBtn.addEventListener('click', async () => {
+        console.log('Downloading entire gallery...');
         const zip = new JSZip();
         const images = document.querySelectorAll('.gallery-item img');
         const fetchPromises = [];
 
-        images.forEach(img => {
+        images.forEach((img, index) => {
             const imgUrl = img.src;
             const filename = imgUrl.split('/').pop();
+
             fetchPromises.push(
                 fetch(imgUrl)
                     .then(res => res.blob())
                     .then(blob => {
                         zip.file(filename, blob);
+                        console.log(`Added ${filename} to zip`);
                     })
             );
         });
@@ -98,26 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.href = URL.createObjectURL(content);
                 link.download = 'gallery.zip';
                 link.click();
+                console.log('Gallery downloaded');
             });
         });
-    });
-
-    // Download individual image functionality
-    gallery.addEventListener('click', (event) => {
-        if (event.target.classList.contains('download-btn')) {
-            const originalImageName = event.target.getAttribute('data-original-image');
-            if (originalImageName) {
-                const link = document.createElement('a');
-                link.href = `/download/${originalImageName}`;
-                link.download = originalImageName;
-                link.click();
-            }
-        }
     });
 
     // Sort Gallery functionality
     sortSelect.addEventListener('change', (event) => {
         const sortBy = event.target.value;
+        console.log('Sorting gallery by:', sortBy);
         const itemsArray = Array.from(gallery.children);
         itemsArray.sort((a, b) => {
             const imgA = a.querySelector('img');
@@ -129,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         itemsArray.forEach(item => gallery.appendChild(item));
+        console.log('Gallery sorted by', sortBy);
     });
 
     // Favorites functionality
@@ -141,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 favorites.add(imgSrc);
                 favoriteSection.appendChild(galleryItem.cloneNode(true));
                 favoriteSection.classList.remove('hidden');
+                console.log('Added to favorites:', imgSrc);
             } else {
                 favorites.delete(imgSrc);
                 const favoritesItems = favoriteSection.querySelectorAll('.gallery-item');
@@ -152,6 +162,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (favorites.size === 0) {
                     favoriteSection.classList.add('hidden');
                 }
+                console.log('Removed from favorites:', imgSrc);
+            }
+            console.log('Favorites updated:', Array.from(favorites));
+        }
+    });
+
+    // Download individual image functionality
+    gallery.addEventListener('click', (event) => {
+        if (event.target.classList.contains('download-btn')) {
+            const originalImageName = event.target.getAttribute('data-original-image');
+            if (originalImageName) {
+                console.log('Downloading image:', originalImageName);
+                const link = document.createElement('a');
+                link.href = `/download/${originalImageName}`;
+                link.download = originalImageName;
+                link.click();
+            } else {
+                console.error('Original image name is undefined for:', event.target);
             }
         }
     });
@@ -168,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     hamburger.addEventListener('click', () => {
+        console.log('Hamburger menu clicked');
         hamburger.classList.toggle('active');
         mobileMenu.classList.toggle('open');
         overlay.classList.toggle('active');
