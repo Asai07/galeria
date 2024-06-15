@@ -19,7 +19,12 @@ app.get('/images', (req, res) => {
 
   fs.readdir(galleryPath, (err, files) => {
     if (err) {
+      console.error('Error reading images directory:', err);
       return res.status(500).send('Error reading images directory');
+    }
+    if (!files.length) {
+      console.warn('No images found in the directory');
+      return res.status(404).send('No images found');
     }
     files.forEach(file => {
       images.push({
@@ -38,6 +43,7 @@ app.get('/download/:imageName', (req, res) => {
 
   res.download(imagePath, err => {
     if (err) {
+      console.error('Error downloading image:', err);
       res.status(500).send('Error downloading image');
     }
   });
