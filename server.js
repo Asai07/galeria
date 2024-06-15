@@ -9,12 +9,12 @@ app.use(express.static('public'));
 
 // Ruta para el archivo HTML principal
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Ruta para obtener imágenes
 app.get('/images', (req, res) => {
-  const galleryPath = path.join(__dirname, 'public/galeria-webp');
+  const galleryPath = path.join(__dirname, 'public', 'galeria-webp');
   const images = [];
 
   fs.readdir(galleryPath, (err, files) => {
@@ -39,7 +39,7 @@ app.get('/images', (req, res) => {
 // Ruta para descargar imágenes individuales
 app.get('/download/:imageName', (req, res) => {
   const imageName = req.params.imageName;
-  const imagePath = path.join(__dirname, 'public/galeria', imageName);
+  const imagePath = path.join(__dirname, 'public', 'galeria', imageName);
 
   res.download(imagePath, err => {
     if (err) {
