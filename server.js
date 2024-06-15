@@ -1,70 +1,48 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
-
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
+// Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static('public'));
 
-app.get('/images', (req, res) => {
-    const imagesDir = path.join(__dirname, 'public/galeria-webp');
-    const originalImagesDir = path.join(__dirname, 'public/galeria');
-
-    fs.readdir(imagesDir, (err, webpFiles) => {
-        if (err) {
-            console.error('Error scanning directory:', err);
-            return res.status(500).json({ error: 'Unable to scan directory' });
-        }
-
-        const originalFiles = fs.readdirSync(originalImagesDir);
-        console.log('Original files:', originalFiles);
-
-        // Create a mapping of webp files to their original files
-        const imageMappings = webpFiles.filter(file => file.endsWith('.webp')).map(webpFile => {
-            const originalFileBaseName = path.basename(webpFile, '.webp');
-            const originalFile = originalFiles.find(file => {
-                return path.basename(file, path.extname(file)) === originalFileBaseName;
-            });
-            if (originalFile) {
-                console.log(`Mapped: ${webpFile} -> ${originalFile}`);
-                return { webp: webpFile, original: originalFile };
-            } else {
-                console.warn(`No original file found for: ${webpFile}`);
-                return { webp: webpFile, original: null };
-            }
-        });
-
-        console.log('Images to send:', imageMappings); // Log the images being sent
-        res.json(imageMappings);
-    });
+// Ruta para el archivo HTML principal
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/download/:image', (req, res) => {
-    const imageName = req.params.image;
-    const originalImageDir = path.join(__dirname, 'public/galeria');
-    const originalImage = path.join(originalImageDir, imageName);
+// Ruta para obtener imágenes
+app.get('/images', (req, res) => {
+  const fs = require('fs');
+  const galleryPath = path.join(__dirname, 'public/galeria-webp');
+  const images = [];
 
-    console.log(`Requested image: ${imageName}`);
-    console.log(`Original image path: ${originalImage}`);
-
-    fs.access(originalImage, fs.constants.F_OK, (err) => {
-        if (err) {
-            console.error('Error accessing file:', err);
-            return res.status(404).send('File not found');
-        } else {
-            res.download(originalImage, imageName, (err) => {
-                if (err) {
-                    console.error('Error downloading file:', err);
-                    return res.status(500).send('Error downloading file.');
-                } else {
-                    console.log(`File downloaded: ${imageName}`);
-                }
-            });
-        }
+  fs.readdir(galleryPath, (err, files) => {
+    if (err) {
+      return res.status(500).send('Error reading images directory');
+    }
+    files.forEach(file => {
+      images.push({
+        webp: file,
+        original: file.replace('.webp', '') // Asumiendo que los nombres de los archivos originales son similares a los webp
+      });
     });
+    res.json(images);
+  });
+});
+
+// Ruta para descargar imágenes individuales
+app.get('/download/:imageName', (req, res) => {
+  const imageName = req.params.imageName;
+  const imagePath = path.join(__dirname, 'public/galeria', imageName);
+
+  res.download(imagePath, err => {
+    if (err) {
+      res.status(500).send('Error downloading image');
+    }
+  });
 });
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server is running on port ${port}`);
 });
