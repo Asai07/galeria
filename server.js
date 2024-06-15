@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -13,7 +14,6 @@ app.get('/', (req, res) => {
 
 // Ruta para obtener imágenes
 app.get('/images', (req, res) => {
-  const fs = require('fs');
   const galleryPath = path.join(__dirname, 'public/galeria-webp');
   const images = [];
 
